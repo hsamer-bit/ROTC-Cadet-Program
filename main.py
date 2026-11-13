@@ -9,7 +9,7 @@ a weekly training calendar.
 
 from drafter import *
 from dataclasses import dataclass, field
-import calendar as cal
+import calendar as cal #Imports calendar and then changes the name to cal because I use created a route calendar
 
 set_website_title("ROTC Cadet Dashboard")
 set_site_information(
@@ -70,12 +70,18 @@ class Fitness_plan:
     worst_events: list = field(default_factory=list)
     workout_program: list = field(default_factory=list)
 
+@dataclass
+class TrainingDay:
+    day: str
+    activity: str
+    
 
 @dataclass
 class Calendar:
-    training_days: list = field(default_factory=list)
+    training_days: list[TrainingDay] = field(default_factory=list)
     month: int = 11
     year: int = 2026
+
 
 
 @dataclass
@@ -408,7 +414,7 @@ def calculate_score(
             Button("Back to AFT Score", "aft_score")
         ])
 
-    try:
+    try: #	Allows the program to handle invalid input without immediately terminating execution.
         state.aft_score.deadlift = deadlift
         state.aft_score.hrp = hrp
 
@@ -515,7 +521,13 @@ def aft_score(state: State) -> Page:
 # -------------------------
 # FITNESS PLAN PAGE
 # -------------------------
+def get_event_points(event):
+    '''Goal: Get the points earned for an AFT event.
+    Parameters: event (tuple), containing an event name and point value.
+    Returns: The point value stored in the second position.'''
 
+    return event[1]
+    
 @route
 def fitness_plan(state: State) -> Page:
     '''Goal: Create fitness recommendations from the AFT event scores.
@@ -546,10 +558,11 @@ def fitness_plan(state: State) -> Page:
         ("Plank", state.aft_points.plank),
         ("2 Mile Run", state.aft_points.run)
     ]
-#     The program sorts the event scores using the second item in each tuple rather than sorting the entire tuple alphabetically.
-    sorted_scores = sorted(
-        event_scores,
-        key=lambda x: x[1] #A lambda function creates a small, unnamed function inside another function call.
+          #     The program sorts the event scores using the second item in each tuple rather than sorting the entire tuple alphabetically.
+sorted_scores = sorted(
+    event_scores,
+    key=get_event_points
+)
     )
 
     worst_events = sorted_scores[:2]
@@ -623,6 +636,22 @@ def fitness_plan(state: State) -> Page:
 # WEEKLY TRAINING SCHEDULE
 # -------------------------
 
+def create_training_schedule(state: State) -> None:
+    '''Goal: Create the weekly ROTC training schedule.
+    Parameters: state (State), containing the calendar information.
+    Returns: None; modifies the training_days list in the calendar.'''
+
+    state.calendar.training_days = [
+        TrainingDay("Monday", "Morning PT - Short Intervals - Workout 1"),
+        TrainingDay("Tuesday", "Recovery / No Scheduled PT"),
+        TrainingDay("Wednesday", "PT - 4 Mile Ruck"),
+        TrainingDay("Thursday", "PT - Long Distance Intervals - Workout 2"),
+        TrainingDay("Friday", "Rest Day"),
+        TrainingDay("Saturday", "Rest Day - Workout 3"),
+        TrainingDay("Sunday", "Rest Day")
+    ]
+
+
 def get_calendar_activity(year: int, month: int, day: int) -> str:
     '''Goal: Determine the scheduled activity for a calendar date.
     Parameters: year, month, and day (int), identifying the date.
@@ -630,16 +659,20 @@ def get_calendar_activity(year: int, month: int, day: int) -> str:
 
     weekday = cal.weekday(year, month, day)
 
-    weekly_schedule = {
-        0: "Morning PT - Short Intervals - Workout 1",
-        1: "Recovery / No Scheduled PT",
-        2: "PT - 4 Mile Ruck",
-        3: "PT - Long Distance Intervals - Workout 2",
-        4: "Rest Day",
-        5: "Workout Day- Workout 3",
-        6: "Rest Day"
-    }
+    if len(state.calendar.training_days) == 0:
+        create_training_schedule(state)
 
+    weekly_schedule_rows = [
+        ["Day", "Scheduled Activity"]
+    ]
+
+    for training_day in state.calendar.training_days:
+        weekly_schedule_rows.append([
+            training_day.day,
+            training_day.activity
+        ])
+
+   
     return weekly_schedule[weekday]
 
 
