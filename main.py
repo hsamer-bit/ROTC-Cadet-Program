@@ -9,7 +9,6 @@ a weekly training calendar.
 
 from drafter import *
 from dataclasses import dataclass, field
-from aft_scoring_data_table import *
 import calendar as cal
 
 set_website_title("ROTC Cadet Dashboard")
