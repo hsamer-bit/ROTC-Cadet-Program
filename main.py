@@ -10,7 +10,7 @@ a weekly training calendar.
 from drafter import *
 from dataclasses import dataclass, field
 import calendar as cal #Imports calendar and then changes the name to cal because I use created a route calendar
-
+theme_system = ThemeSystem("almond")
 set_website_title("ROTC Cadet Dashboard")
 set_site_information(
     author="Henry Samer",
